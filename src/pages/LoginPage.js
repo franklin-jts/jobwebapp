@@ -17,7 +17,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      navigate('/');
+      navigate('/admin');
     } catch (e) {
       toast.error(String(e));
     } finally {
@@ -31,7 +31,7 @@ export default function LoginPage() {
       <div className="auth-pg__left">
         <div className="auth-pg__left-inner">
           <Link to="/" className="auth-pg__back">← Back to Home</Link>
-          <div className="auth-pg__brand">🤝 ReferJob</div>
+          <div className="auth-pg__brand">🤝 ReferNOW</div>
           <h2 className="auth-pg__tagline">Get referred faster.<br />Land your dream job.</h2>
           <div className="auth-pg__features">
             {['Connect with insiders at top companies', 'Skip the ATS — get seen by real humans', '12,000+ referrals given and counting', 'Available on web and mobile'].map((f) => (

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://192.168.29.26:8000';
 
 const api = axios.create({ baseURL: BASE_URL });
 
@@ -13,8 +13,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    // Only force-logout on 401 for authenticated requests (not login/register endpoints)
+    const url = err.config?.url || '';
+    const isAuthEndpoint = url.includes('/api/auth/login') || url.includes('/api/auth/register');
+    if (err.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(err.response?.data?.detail || err.message || 'Something went wrong');
@@ -39,4 +43,16 @@ export const storiesAPI = {
   list: () => api.get('/api/stories/').then((r) => r.data),
   create: (body) => api.post('/api/stories/', body).then((r) => r.data),
   delete: (id) => api.delete(`/api/stories/${id}`).then((r) => r.data),
+  viewers: (id) => api.get(`/api/stories/${id}/viewers`).then((r) => r.data),
+};
+
+// Upload an image file → returns { url: '...' }
+export const uploadAPI = {
+  image: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/api/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data);
+  },
 };

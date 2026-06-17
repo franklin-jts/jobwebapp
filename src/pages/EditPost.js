@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { postsAPI } from '../services/api';
+import LogoUploader from '../components/LogoUploader';
+import PostImageUploader from '../components/PostImageUploader';
+import SkillsInput from '../components/SkillsInput';
 import toast from 'react-hot-toast';
 
-const SKILLS = ['React', 'React Native', 'Node.js', 'Python', 'AWS', 'Product Management', 'UX Design', 'Data Science', 'TypeScript', 'Kotlin', 'Java', 'Machine Learning', 'DevOps', 'Flutter', 'Go', 'Rust', 'SQL', 'MongoDB'];
 const WORK_MODES = [{ id: 'remote', label: '🏠 Remote' }, { id: 'hybrid', label: '🔀 Hybrid' }, { id: 'onsite', label: '🏢 On-site' }];
 const POST_TYPES = [
   { id: 'job_post',         label: '📢 Job Post',         color: '#e0e7ff', active: '#4f46e5' },
@@ -32,13 +34,13 @@ export default function EditPost() {
         work_mode:    p.work_mode || 'hybrid',
         can_refer:    p.can_refer || false,
         company_logo: p.company_logo || '',
+        post_image:   p.post_image || '',
       }))
       .catch(() => toast.error('Failed to load post'))
       .finally(() => setLoading(false));
   }, [id]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter((x) => x !== s) : [...form.skills, s]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,7 +50,7 @@ export default function EditPost() {
     try {
       await postsAPI.update(id, form);
       toast.success('Post updated! Changes are live in the app.');
-      navigate('/posts');
+      navigate('/admin/posts');
     } catch (e) {
       toast.error(String(e));
     } finally {
@@ -107,8 +109,8 @@ export default function EditPost() {
               <input className="input" value={form.location} onChange={(e) => set('location', e.target.value)} />
             </div>
             <div className="form-group">
-              <label>Company Logo URL</label>
-              <input className="input" value={form.company_logo} onChange={(e) => set('company_logo', e.target.value)} />
+              <label>Company Logo</label>
+              <LogoUploader value={form.company_logo} onChange={(url) => set('company_logo', url)} />
             </div>
           </div>
 
@@ -140,14 +142,12 @@ export default function EditPost() {
 
           <div className="form-group">
             <label>Skills</label>
-            <div className="chips-wrap">
-              {SKILLS.map((s) => (
-                <button key={s} type="button" onClick={() => toggleSkill(s)}
-                  className={`chip-btn ${form.skills.includes(s) ? 'selected' : 'unselected'}`}>
-                  {form.skills.includes(s) ? '✓ ' : ''}{s}
-                </button>
-              ))}
-            </div>
+            <SkillsInput value={form.skills} onChange={(skills) => set('skills', skills)} />
+          </div>
+
+          <div className="form-group">
+            <label>Post Image <span style={{ fontWeight: 400, color: '#64748b', fontSize: 12 }}>(optional — shows as banner in mobile feed)</span></label>
+            <PostImageUploader value={form.post_image} onChange={(url) => set('post_image', url)} />
           </div>
 
           <div className="form-group">
@@ -167,7 +167,7 @@ export default function EditPost() {
           <div className="divider" />
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <button type="button" className="btn btn-ghost btn-lg" onClick={() => navigate('/posts')}>Cancel</button>
+            <button type="button" className="btn btn-ghost btn-lg" onClick={() => navigate('/admin/posts')}>Cancel</button>
             <button type="submit" className="btn btn-lg" disabled={saving}
               style={{ background: activeType?.active, color: '#fff', minWidth: 160, justifyContent: 'center' }}>
               {saving ? <span className="spinner spinner-sm" /> : '💾 Save Changes'}

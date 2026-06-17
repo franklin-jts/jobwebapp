@@ -21,7 +21,7 @@ function Navbar() {
   return (
     <nav className={`ln-nav ${scrolled ? 'ln-nav--scrolled' : ''}`}>
       <div className="ln-nav__inner">
-        <div className="ln-nav__logo">🤝 ReferJob</div>
+        <div className="ln-nav__logo">🤝 ReferNOW</div>
 
         <div className={`ln-nav__links ${menuOpen ? 'ln-nav__links--open' : ''}`}>
           <button onClick={() => scrollTo('home')}>Home</button>
@@ -237,12 +237,43 @@ function Focus() {
 
 // ── Contact ───────────────────────────────────────────────────────────────────
 function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [sent, setSent] = useState(false);
+  const [form, setForm]       = useState({ name: '', email: '', message: '' });
+  const [sent, setSent]       = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
+    setError('');
+
+    // Validate all fields
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('http://192.168.29.26:8000/api/enquiry/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:    form.name.trim(),
+          email:   form.email.trim(),
+          message: form.message.trim(),
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed');
+
+      // Success — show success state and clear form
+      setSent(true);
+      setForm({ name: '', email: '', message: '' });
+    } catch (err) {
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -278,6 +309,13 @@ function Contact() {
                 <div style={{ fontSize: 52 }}>✅</div>
                 <h3>Message Sent!</h3>
                 <p>Thanks for reaching out. We'll get back to you within 24 hours.</p>
+                <button
+                  className="ln-btn ln-btn--outline"
+                  style={{ marginTop: 16 }}
+                  onClick={() => setSent(false)}
+                >
+                  Send Another Message
+                </button>
               </div>
             ) : (
               <form className="ln-contact__form" onSubmit={handleSubmit}>
@@ -296,8 +334,25 @@ function Contact() {
                   <textarea className="ln-input ln-textarea" placeholder="How can we help you?" value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })} required />
                 </div>
-                <button type="submit" className="ln-btn ln-btn--primary ln-btn--lg" style={{ width: '100%', justifyContent: 'center' }}>
-                  📨 Send Message
+
+                {/* Error message */}
+                {error && (
+                  <div style={{
+                    background: '#fef2f2', border: '1px solid #fecaca',
+                    color: '#dc2626', borderRadius: 8, padding: '10px 14px',
+                    fontSize: 13, marginBottom: 8,
+                  }}>
+                    ⚠️ {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="ln-btn ln-btn--primary ln-btn--lg"
+                  style={{ width: '100%', justifyContent: 'center', opacity: loading ? 0.7 : 1 }}
+                  disabled={loading}
+                >
+                  {loading ? '⏳ Sending…' : '📨 Send Message'}
                 </button>
               </form>
             )}
@@ -315,7 +370,7 @@ function Footer() {
       <div className="ln-container">
         <div className="ln-footer__grid">
           <div>
-            <div className="ln-footer__logo">🤝 ReferJob</div>
+            <div className="ln-footer__logo">🤝 ReferNOW</div>
             <p className="ln-footer__tagline">Get referred faster. Land your dream job.</p>
           </div>
           <div>
@@ -337,7 +392,7 @@ function Footer() {
           </div>
         </div>
         <div className="ln-footer__bottom">
-          <p>© 2026 ReferJob. All rights reserved.</p>
+          <p>© 2026 ReferNOW. All rights reserved.</p>
         </div>
       </div>
     </footer>

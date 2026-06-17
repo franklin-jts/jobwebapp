@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postsAPI } from '../services/api';
+import LogoUploader from '../components/LogoUploader';
+import PostImageUploader from '../components/PostImageUploader';
+import SkillsInput from '../components/SkillsInput';
 import toast from 'react-hot-toast';
 
-const SKILLS = ['React', 'React Native', 'Node.js', 'Python', 'AWS', 'Product Management', 'UX Design', 'Data Science', 'TypeScript', 'Kotlin', 'Java', 'Machine Learning', 'DevOps', 'Flutter', 'Go', 'Rust', 'SQL', 'MongoDB'];
 const WORK_MODES = [{ id: 'remote', label: '🏠 Remote' }, { id: 'hybrid', label: '🔀 Hybrid' }, { id: 'onsite', label: '🏢 On-site' }];
 const POST_TYPES = [
   { id: 'job_post',         label: '📢 Job Post',         desc: 'Company is hiring',     color: '#e0e7ff', active: '#4f46e5' },
@@ -11,7 +13,7 @@ const POST_TYPES = [
   { id: 'referral_request', label: '🙋 Referral Request', desc: 'Looking for referral',  color: '#fef3c7', active: '#d97706' },
 ];
 
-const EMPTY = { type: 'job_post', job_title: '', company: '', location: '', salary: '', experience: '', description: '', skills: [], work_mode: 'hybrid', can_refer: false, company_logo: '' };
+const EMPTY = { type: 'job_post', job_title: '', company: '', location: '', salary: '', experience: '', description: '', skills: [], work_mode: 'hybrid', can_refer: false, company_logo: '', post_image: '' };
 
 export default function CreatePost() {
   const navigate = useNavigate();
@@ -19,7 +21,6 @@ export default function CreatePost() {
   const [loading, setLoading] = useState(false);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter((x) => x !== s) : [...form.skills, s]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,9 +40,10 @@ export default function CreatePost() {
         skills:       form.skills,
         can_refer:    form.type === 'referral_offer' ? true : form.can_refer,
         company_logo: form.company_logo,
+        post_image:   form.post_image,
       });
       toast.success('Post published to app! 🎉');
-      navigate('/posts');
+      navigate('/admin/posts');
     } catch (e) {
       toast.error(String(e));
     } finally {
@@ -97,9 +99,8 @@ export default function CreatePost() {
               <input className="input" placeholder="e.g. Bengaluru, India" value={form.location} onChange={(e) => set('location', e.target.value)} />
             </div>
             <div className="form-group">
-              <label>Company Logo URL</label>
-              <input className="input" placeholder="https://..." value={form.company_logo} onChange={(e) => set('company_logo', e.target.value)} />
-              <span className="input-hint">Paste a direct image URL for the company logo</span>
+              <label>Company Logo</label>
+              <LogoUploader value={form.company_logo} onChange={(url) => set('company_logo', url)} />
             </div>
           </div>
 
@@ -131,14 +132,12 @@ export default function CreatePost() {
 
           <div className="form-group">
             <label>Skills Required</label>
-            <div className="chips-wrap">
-              {SKILLS.map((s) => (
-                <button key={s} type="button" onClick={() => toggleSkill(s)}
-                  className={`chip-btn ${form.skills.includes(s) ? 'selected' : 'unselected'}`}>
-                  {form.skills.includes(s) ? '✓ ' : ''}{s}
-                </button>
-              ))}
-            </div>
+            <SkillsInput value={form.skills} onChange={(skills) => set('skills', skills)} />
+          </div>
+
+          <div className="form-group">
+            <label>Post Image <span style={{ fontWeight: 400, color: '#64748b', fontSize: 12 }}>(optional — shows as banner in mobile feed)</span></label>
+            <PostImageUploader value={form.post_image} onChange={(url) => set('post_image', url)} />
           </div>
 
           <div className="form-group">
@@ -159,7 +158,7 @@ export default function CreatePost() {
           <div className="divider" />
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <button type="button" className="btn btn-ghost btn-lg" onClick={() => navigate('/posts')}>Cancel</button>
+            <button type="button" className="btn btn-ghost btn-lg" onClick={() => navigate('/admin/posts')}>Cancel</button>
             <button type="submit" className="btn btn-lg" disabled={loading}
               style={{ background: activeType?.active, color: '#fff', minWidth: 160, justifyContent: 'center' }}>
               {loading ? <span className="spinner spinner-sm" /> : `🚀 Publish Post`}

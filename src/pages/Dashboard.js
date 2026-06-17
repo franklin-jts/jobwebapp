@@ -104,7 +104,7 @@ export default function Dashboard() {
                       <td className="post-meta-cell">{post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <Link to={`/posts/edit/${post.id}`} className="btn btn-outline btn-sm">✏️ Edit</Link>
+                          <Link to={`/admin/posts/edit/${post.id}`} className="btn btn-outline btn-sm">✏️ Edit</Link>
                         </div>
                       </td>
                     </tr>
